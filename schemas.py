@@ -11,9 +11,12 @@ class SGroup(SGroupAdd):
 
     model_config = ConfigDict(from_attributes=True)
 
-class STeacherAdd(BaseModel):
+
+class SPublicProfile(BaseModel):
     name: str
-    surname: Optional[str] = None
+    surname: str
+
+class STeacherAdd(SPublicProfile):
     chat_id: int
 
 class STeacher(STeacherAdd):
@@ -21,12 +24,10 @@ class STeacher(STeacherAdd):
 
     model_config = ConfigDict(from_attributes=True)
 
-class SStudentAdd(BaseModel):
-    name: str
-    surname: str
+class SStudentAdd(SPublicProfile):
     chat_id: int
 
 class SStudent(SStudentAdd):
     id: int
-
+    
     model_config = ConfigDict(from_attributes=True)

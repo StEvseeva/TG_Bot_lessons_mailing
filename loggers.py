@@ -9,8 +9,8 @@ from datetime import datetime
 load_dotenv()
 
 FORMATTER = logging.Formatter("[%(asctime)s] [%(name)s] [%(levelname)s] %(message)s")
-app_filename: Path = Path(os.getenv('LOG_FILENAME_PREFIX') + '_' + str(datetime.today().date()))
-error_filename: Path = Path(os.getenv('LOG_ERROR_PREFIX') + '_' + str(datetime.today().date()))
+app_filename: Path = Path(os.getenv('LOG_FILENAME_PREFIX') + '_' + str(datetime.today().date()) + '.log')
+error_filename: Path = Path(os.getenv('LOG_ERROR_PREFIX') + '_' + str(datetime.today().date()) + '.log')
 log_path: Path = Path(os.getenv('LOG_PATH'))
 APP_PATH: Path = log_path/app_filename
 ERROR_PATH: Path = log_path/error_filename

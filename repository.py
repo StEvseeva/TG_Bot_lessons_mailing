@@ -33,48 +33,48 @@ class TeacherRepository:
     @classmethod
     async def put(cls, data: STeacherAdd) -> int:
         async with new_session() as session:
-            logger_db.info(f'add object Teacher | name: {data.name} surname: {data.surname}')
             teacher_dict = data.model_dump()
             print()
             teacher = Teacher(**teacher_dict)
             session.add(teacher)
             await session.flush()
             await session.commit()
+            logger_db.info(f'add object Teacher | name: \'{data.name}\' surname: \'{data.surname}\' id: \'{teacher.id}\'')
             return teacher.id
 
     @classmethod
     async def get(cls, chat_id: int = None) -> list[STeacher]:
         async with new_session() as session:
-            logger_db.info(f'get object Teacher | chat_id: {chat_id}')
             query = select(Teacher)
             if id:
                 query = query.where(Teacher.chat_id == chat_id)
             result = await session.execute(query)
             teacher_models = result.scalars().all()
             teacher_models = [STeacher.model_validate(model) for model in teacher_models]
+            logger_db.info(f'get objects Teacher | {len(teacher_models)} items')
             return teacher_models
        
 class StudentRepository:
     @classmethod
     async def put(cls, data: SStudentAdd) -> int:
         async with new_session() as session:
-            logger_db.info(f'add object Student | name: {data.name} surname: {data.surname}')
             student_dict = data.model_dump()
             print()
             student = Student(**student_dict)
             session.add(student)
             await session.flush()
             await session.commit()
+            logger_db.info(f'add object Student | name: \'{data.name}\' surname: \'{data.surname}\' id: \'{student.id}\'')
             return student.id
     
     @classmethod
     async def get(cls, chat_id: int = None) -> list[SStudent]:
         async with new_session() as session:
-            logger_db.info(f'get object Student | chat_id: {chat_id}')
             query = select(Student)
             if id:
                 query = query.where(Student.chat_id == chat_id)
             result = await session.execute(query)
             student_models = result.scalars().all()
             student_models = [SStudent.model_validate(model) for model in student_models]
+            logger_db.info(f'get object Student | {len(student_models)} items')
             return student_models
