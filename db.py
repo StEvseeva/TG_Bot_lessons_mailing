@@ -35,7 +35,7 @@ class Teacher(Model):
     __tablename__ = "teachers"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    chat_id: Mapped[str]
+    chat_id: Mapped[int]
     name: Mapped[str]
     surname: Mapped[Optional[str]]
     groups: Mapped[Optional[List[Group]]] = relationship()
@@ -45,7 +45,7 @@ class Student(Model):
     __tablename__ = "students"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    chat_id: Mapped[str]
+    chat_id: Mapped[int]
     name: Mapped[str]
     surname: Mapped[str]
     groups: Mapped[Optional[List[Group]]] = relationship(secondary=associate_students_groups, back_populates="students")

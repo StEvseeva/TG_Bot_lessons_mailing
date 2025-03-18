@@ -1,4 +1,5 @@
 venv
+logs
 .vscosde
 Dockerfile
 litedb.db
