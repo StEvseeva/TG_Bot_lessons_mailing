@@ -1,0 +1,4 @@
+venv
+.vscosde
+Dockerfile
+litedb.db
