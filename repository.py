@@ -1,5 +1,5 @@
-from db import new_session, Group, Teacher, Student
-from schemas import SGroup, SGroupAdd, STeacherAdd, STeacher, SStudentAdd, SStudent
+from db import new_session, Group, User
+from schemas import SGroupGet, SGroupBase, SUserBase, SUserBase
 from sqlalchemy import select
 
 from loggers import get_logger
@@ -7,10 +7,9 @@ from loggers import get_logger
 logger_db = get_logger(__name__)
 class GroupRepository:
     @classmethod
-    async def put(cls, data: SGroupAdd) -> int:
+    async def put(cls, data: SGroupBase) -> int:
         async with new_session() as session:
             group_dict = data.model_dump()
-
             group = Group(**group_dict)
             session.add(group)
             await session.flush()
@@ -18,63 +17,40 @@ class GroupRepository:
             return group.id
 
     @classmethod
-    async def get(cls, id: int = None) -> list[SGroup]:
+    async def get(cls, id: int = None) -> list[SGroupGet]:
         async with new_session() as session:
             query = select(Group)
             if id:
                 query = query.where(Group.id == id)
             result = await session.execute(query)
             group_models = result.scalars().all()
-            group_models = [SGroup.model_validate(model) for model in group_models]
+            group_models = [SGroupGet.model_validate(model) for model in group_models]
+            logger_db.info(f'get objects User | {len(group_models)} items found')
             return group_models
         
 
-class TeacherRepository:
+class UserRepository:
     @classmethod
-    async def put(cls, data: STeacherAdd) -> int:
+    async def put(cls, data: SUserBase) -> bool:
         async with new_session() as session:
-            teacher_dict = data.model_dump()
+            user_dict = data.model_dump()
             print()
-            teacher = Teacher(**teacher_dict)
-            session.add(teacher)
+            user = User(**user_dict)
+            session.add(user)
             await session.flush()
             await session.commit()
-            logger_db.info(f'add object Teacher | name: \'{data.name}\' surname: \'{data.surname}\' id: \'{teacher.id}\'')
-            return teacher.id
+            logger_db.info(f'add object User | teacher: \'{data.is_teacher}\' name: \'{data.name}\' surname: \'{data.surname}\' id: \'{user.chat_id}\'')
+            return True
 
     @classmethod
-    async def get(cls, chat_id: int = None) -> list[STeacher]:
+    async def get(cls, chat_id: int = None) -> list[SUserBase]:
         async with new_session() as session:
-            query = select(Teacher)
+            query = select(User)
             if id:
-                query = query.where(Teacher.chat_id == chat_id)
+                query = query.where(User.chat_id == chat_id)
             result = await session.execute(query)
-            teacher_models = result.scalars().all()
-            teacher_models = [STeacher.model_validate(model) for model in teacher_models]
-            logger_db.info(f'get objects Teacher | {len(teacher_models)} items')
-            return teacher_models
-       
-class StudentRepository:
-    @classmethod
-    async def put(cls, data: SStudentAdd) -> int:
-        async with new_session() as session:
-            student_dict = data.model_dump()
-            print()
-            student = Student(**student_dict)
-            session.add(student)
-            await session.flush()
-            await session.commit()
-            logger_db.info(f'add object Student | name: \'{data.name}\' surname: \'{data.surname}\' id: \'{student.id}\'')
-            return student.id
-    
-    @classmethod
-    async def get(cls, chat_id: int = None) -> list[SStudent]:
-        async with new_session() as session:
-            query = select(Student)
-            if id:
-                query = query.where(Student.chat_id == chat_id)
-            result = await session.execute(query)
-            student_models = result.scalars().all()
-            student_models = [SStudent.model_validate(model) for model in student_models]
-            logger_db.info(f'get object Student | {len(student_models)} items')
-            return student_models
+            user_models = result.scalars().all()
+            user_models = [SUserBase.model_validate(model) for model in user_models]
+            logger_db.info(f'get objects User | {len(user_models)} items found')
+            return user_models
+      

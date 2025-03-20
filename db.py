@@ -15,11 +15,9 @@ class Model(DeclarativeBase):
 associate_students_groups = Table(
     "students_groups",
     Model.metadata,
-    Column("student_id", ForeignKey("students.id"), primary_key=True),
+    Column("student_id", ForeignKey("users.chat_id"), primary_key=True),
     Column("group_id", ForeignKey("groups.id"), primary_key=True),
 )
-
-
 
 class Group(Model):
     __tablename__ = "groups"
@@ -27,29 +25,19 @@ class Group(Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
     description: Mapped[Optional[str]]
-    teacher_id: Mapped[int] = mapped_column(ForeignKey("teachers.id"))
-    students: Mapped[Optional[List["Student"]]] = relationship(secondary=associate_students_groups, back_populates="groups")
+    teacher_id: Mapped[int] = mapped_column(ForeignKey("users.chat_id"))
+    students: Mapped[Optional[List["User"]]] = relationship(secondary=associate_students_groups, back_populates="groups")
 
 
-class Teacher(Model):
-    __tablename__ = "teachers"
+class User(Model):
+    __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    chat_id: Mapped[int]
+    chat_id: Mapped[int] = mapped_column(primary_key=True)
+    is_teacher: Mapped[Optional[bool]] = mapped_column(default=False)
     name: Mapped[str]
     surname: Mapped[Optional[str]]
-    groups: Mapped[Optional[List[Group]]] = relationship()
-
-
-class Student(Model):
-    __tablename__ = "students"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    chat_id: Mapped[int]
-    name: Mapped[str]
-    surname: Mapped[str]
-    groups: Mapped[Optional[List[Group]]] = relationship(secondary=associate_students_groups, back_populates="students")
-
+    teacher_groups: Mapped[Optional[List[Group]]] = relationship(lazy='selectin')
+    groups: Mapped[Optional[List[Group]]] = relationship(lazy='selectin', secondary=associate_students_groups, back_populates="students")
 
 
 async def create_table():
