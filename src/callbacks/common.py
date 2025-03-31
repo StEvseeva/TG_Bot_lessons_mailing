@@ -4,6 +4,8 @@ from telegram.ext import (
     ContextTypes
     )
 
+from helpers import is_teacher
+
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:  # TODO wtf is cancel?? read about fallbacks
     await update.message.reply_text(
@@ -13,7 +15,7 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:  # 
 async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     teacher_keyboard = [["/profile", "/groups"]]  # TODO add keys to all keyboards
     student_keyboard = [["/profile"]]
-    if context.user_data.get('is_teacher'):
+    if await is_teacher(update.message.chat_id, context):
         kb_in_use = teacher_keyboard
     else:
         kb_in_use = student_keyboard
@@ -24,6 +26,7 @@ async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                                              one_time_keyboard=True, 
                                              input_field_placeholder='some action')
         )
+    return ConversationHandler.END
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(

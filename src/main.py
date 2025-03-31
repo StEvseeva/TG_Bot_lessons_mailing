@@ -16,7 +16,7 @@ from telegram.ext import (
     Defaults
     )
 
-from db import create_table, delete_table
+from db import create_table, delete_table, create_posts
 from callbacks.registration import (
     CONFIRMATION_CODE, USER_ROLE, CREDENTIALS,
     registration_start,
@@ -26,17 +26,22 @@ from callbacks.registration import (
     check_conf_code
 )
 from callbacks.groups import (
-    NAME, DESCRIPTION, MENU,
-    add_group_end,
+    GROUP_NAME, GROUP_DESCRIPTION, STUDENTS_START, STUDENTS_LIST,
+    GROUP_FORK, STUDENTS_FORK,
+    add_students_start,
+    add_students_list,
+    add_students_end,
+    add_group_fork,
     add_group_name,
-    add_group_start
+    add_group_start,
+    get_groups
 )
 from callbacks.common import cancel, start, menu
 from callbacks.profile import get_profile
 
 async def post_init(app: Application) -> None:
-    await delete_table()
-    await create_table()
+    # await delete_table()
+    # await create_table()
     pass
 
 
@@ -61,19 +66,41 @@ if __name__ == '__main__':
         },
         fallbacks=[CommandHandler("cancel", cancel)]
     )
-    add_group_handler = ConversationHandler(
-        entry_points=[CommandHandler("add_group", add_group_start)],
+    add_students_handler = ConversationHandler(
+        entry_points=[CommandHandler("add_students", add_students_start)],
         states={
-            NAME: [MessageHandler(filters.TEXT, add_group_name)],
-            DESCRIPTION: [MessageHandler(filters.TEXT, add_group_end)],
-            MENU: [MessageHandler(filters.TEXT, menu)]
+            STUDENTS_START: [
+                CommandHandler("menu", menu),
+                MessageHandler(filters.TEXT, add_students_start)
+                ],
+            STUDENTS_LIST: [MessageHandler(filters.TEXT, add_students_list)],
+            STUDENTS_FORK: [
+                MessageHandler(filters.Regex("^yes$"), add_students_start),
+                MessageHandler(filters.Regex("^no$"), add_students_end)
+                ],
         },
         fallbacks=[CommandHandler("cancel", cancel)]
     )
+    add_group_handler = ConversationHandler(
+        allow_reentry=True,
+        entry_points=[CommandHandler("add_group", add_group_start)],
+        states={
+            GROUP_NAME: [MessageHandler(filters.TEXT, add_group_name)],
+            GROUP_DESCRIPTION: [MessageHandler(filters.TEXT, add_group_fork)],
+            GROUP_FORK: [
+                add_students_handler,
+                MessageHandler(filters.Regex("^done$"), menu)],
+            STUDENTS_START: [CommandHandler("menu", menu)]
+        },
+        fallbacks=[CommandHandler("cancel", cancel)]
+    )
+    
     app.add_handler(reg_handler)
     app.add_handler(add_group_handler)
+    app.add_handler(add_students_handler)
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("profile", get_profile))
+    app.add_handler(CommandHandler("groups", get_groups))
     app.add_handler(CommandHandler("menu", menu))
     app.run_polling()
 

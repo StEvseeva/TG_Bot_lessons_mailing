@@ -1,4 +1,4 @@
-from telegram import Update, ReplyKeyboardMarkup
+from telegram import ReplyKeyboardRemove, Update, ReplyKeyboardMarkup
 from telegram.ext import (
     ConversationHandler,
     ContextTypes
@@ -15,7 +15,7 @@ USER_ROLE, CONFIRMATION_CODE, CREDENTIALS = range(3)
 async def registration_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     logger.debug(f'start registration | chat_id: \'{update.message.chat_id}\'')
     reply_keyboard = [["Teacher", "Student"]]
-    if await UserRepository.get(update.message.chat_id):
+    if await UserRepository.get([update.message.chat_id]):
         await update.message.reply_text(
             "You already have a profile. Send /profile to take a look on you credentials."
             )
@@ -31,7 +31,8 @@ async def registration_teacher(update: Update, context: ContextTypes.DEFAULT_TYP
     context.user_data['is_teacher'] = True
     await update.message.reply_text(
     'Send me a confirmation code, please. '
-    'If you don\'t have one, ask admin for it.')
+    'If you don\'t have one, ask admin for it.',
+    reply_markup=ReplyKeyboardRemove())
     return CONFIRMATION_CODE
 
 async def check_conf_code(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -47,13 +48,16 @@ async def registration_student(update: Update, context: ContextTypes.DEFAULT_TYP
     context.user_data['is_teacher'] = False
     await update.message.reply_text(
         f'Oh, nice. I need to know, how can i call you.'
-        ' What\'s your real name and surname? Answer with only 2 words, please.')
+        ' What\'s your real name and surname? Answer with only 2 words, please.',
+        reply_markup=ReplyKeyboardRemove())
     return CREDENTIALS
 
 async def registration_end(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     creds = update.message.text.split()
     context.user_data['creds'] = creds
-    user = SUserBase(name=creds[0], surname=creds[1], chat_id=update.message.chat_id)
+    user = SUserBase(name=creds[0], surname=creds[1], 
+                     chat_id=update.message.chat_id,
+                     username=update.message.from_user.username)
     if context.user_data['is_teacher']:
         user.is_teacher = True   
     await UserRepository.put(user)
